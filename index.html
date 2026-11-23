@@ -1,0 +1,1919 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>دردشة الرفيق — تواصل داخلي بدون إنترنت</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Cairo', 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #0f172a;
+      color: #f8fafc;
+      margin: 0;
+      overflow-x: hidden;
+    }
+    body.font-large { font-size: 17px; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.35); border-radius: 999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.6); }
+    .msg-enter { animation: msgFade 0.18s ease-out; }
+    @keyframes msgFade {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .pulse-dot { animation: pulseRing 2s infinite; }
+    @keyframes pulseRing {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.55; transform: scale(1.18); }
+    }
+  </style>
+</head>
+<body class="h-screen w-screen overflow-hidden bg-slate-950 text-slate-100 select-none sm:select-text">
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-[60] flex flex-col gap-2 w-11/12 max-w-md pointer-events-none"></div>
+
+  <!-- AUTH SCREEN -->
+  <div id="auth-screen" class="h-full w-full flex items-center justify-center p-4 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 overflow-y-auto">
+    <div class="w-full max-w-md bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-3xl shadow-2xl p-6 sm:p-8 my-auto">
+      <div class="flex flex-col items-center text-center mb-6">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-indigo-500/30 mb-3">
+          <i data-lucide="message-square-heart" class="w-8 h-8 text-white"></i>
+        </div>
+        <h1 class="text-2xl font-extrabold text-white tracking-tight">دردشة الرفيق</h1>
+        <p class="text-xs sm:text-sm text-slate-400 mt-1">غرف غير محدودة • مكالمات داخلية • بوت تنبيهات ذكي</p>
+        <div class="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-medium">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span>
+          جاهز للعمل بدون واي فاي أو إنترنت
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-1.5 p-1 bg-slate-950/80 rounded-xl border border-slate-800 mb-5">
+        <button type="button" id="tab-login" class="py-2 rounded-lg text-sm font-bold transition bg-indigo-600 text-white shadow">تسجيل الدخول</button>
+        <button type="button" id="tab-signup" class="py-2 rounded-lg text-sm font-bold transition text-slate-400 hover:text-white">إنشاء حساب Gmail</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label for="login-email" class="block text-xs font-semibold text-slate-300 mb-1.5">حساب Gmail</label>
+          <div class="relative">
+            <input id="login-email" type="email" dir="ltr" placeholder="name@gmail.com" required
+              class="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-xl px-4 py-2.5 pl-10 text-sm text-white placeholder-slate-500 outline-none transition text-left" />
+            <i data-lucide="mail" class="w-4 h-4 text-slate-500 absolute left-3.5 top-3"></i>
+          </div>
+        </div>
+        <div>
+          <label for="login-password" class="block text-xs font-semibold text-slate-300 mb-1.5">كلمة المرور أو رمز الدخول</label>
+          <div class="relative">
+            <input id="login-password" type="password" dir="ltr" placeholder="••••••••" required minlength="4"
+              class="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-xl px-4 py-2.5 pl-10 text-sm text-white placeholder-slate-500 outline-none transition text-left" />
+            <i data-lucide="lock" class="w-4 h-4 text-slate-500 absolute left-3.5 top-3"></i>
+          </div>
+        </div>
+        <div class="flex items-center justify-between text-xs text-slate-400">
+          <label class="inline-flex items-center gap-2 cursor-pointer">
+            <input id="remember-me" type="checkbox" checked class="rounded border-slate-700 bg-slate-950 text-indigo-600 focus:ring-indigo-500" />
+            <span>بقاء الجلسة مفتوحة بدون إنترنت</span>
+          </label>
+        </div>
+        <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold text-sm shadow-lg shadow-indigo-600/25 transition flex items-center justify-center gap-2">
+          <i data-lucide="log-in" class="w-4 h-4"></i>
+          دخول إلى دردشة الرفيق
+        </button>
+
+        <div class="relative py-2">
+          <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-800"></div></div>
+          <div class="relative flex justify-center text-xs"><span class="bg-slate-900 px-3 text-slate-500">أو الدخول السريع</span></div>
+        </div>
+
+        <button type="button" id="btn-google-quick" class="w-full py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-900 font-bold text-sm transition flex items-center justify-center gap-2.5 shadow">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.2-1.4 3.6-5.5 3.6-3.3 0-6-2.7-6-6s2.7-6 6-6c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.7 3.1 14.6 2.2 12 2.2 6.6 2.2 2.2 6.6 2.2 12s4.4 9.8 9.8 9.8c5.7 0 9.4-4 9.4-9.6 0-.6-.1-1.1-.2-1.6H12z"/>
+          </svg>
+          متابعة بحساب Gmail المحفوظ
+        </button>
+      </form>
+
+      <!-- Signup Form -->
+      <form id="signup-form" class="space-y-3.5 hidden">
+        <div>
+          <label for="signup-name" class="block text-xs font-semibold text-slate-300 mb-1">الاسم الكامل</label>
+          <input id="signup-name" type="text" placeholder="مثال: م. محمد القاق" required minlength="2"
+            class="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none" />
+        </div>
+        <div>
+          <label for="signup-email" class="block text-xs font-semibold text-slate-300 mb-1">بريد Gmail</label>
+          <input id="signup-email" type="email" dir="ltr" placeholder="yourname@gmail.com" required
+            class="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none text-left" />
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="signup-role" class="block text-xs font-semibold text-slate-300 mb-1">القسم / الصفة</label>
+            <select id="signup-role" class="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-sm text-white outline-none">
+              <option value="مدير عام">مدير عام</option>
+              <option value="محاسب">محاسب</option>
+              <option value="أمين مستودع">أمين مستودع</option>
+              <option value="مشرف إنتاج">مشرف إنتاج</option>
+              <option value="مندوب مبيعات">مندوب مبيعات</option>
+              <option value="موظف جديد">موظف جديد</option>
+            </select>
+          </div>
+          <div>
+            <label for="signup-password" class="block text-xs font-semibold text-slate-300 mb-1">كلمة المرور (4+ أحرف)</label>
+            <input id="signup-password" type="password" dir="ltr" placeholder="••••••" required minlength="4"
+              class="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-500 outline-none text-left" />
+          </div>
+        </div>
+        <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-sm shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2">
+          <i data-lucide="user-plus" class="w-4 h-4"></i>
+          إنشاء الحساب وحفظه محلياً
+        </button>
+      </form>
+
+      <div id="saved-accounts-box" class="mt-5 pt-4 border-t border-slate-800 hidden">
+        <p class="text-xs font-semibold text-slate-400 mb-2">الحسابات المحفوظة على هذا الجهاز:</p>
+        <div id="saved-accounts-list" class="flex flex-wrap gap-2"></div>
+      </div>
+
+      <p class="mt-5 pt-3 border-t border-slate-800/80 text-center text-[11px] text-slate-400 font-semibold">
+        تم تصميم البرنامج بالكامل بإشراف المهندس محمد سليم القاق
+      </p>
+    </div>
+  </div>
+
+  <!-- MAIN APP SCREEN -->
+  <div id="app-screen" class="h-full w-full hidden flex flex-col md:flex-row bg-slate-950 relative">
+    <div id="mobile-backdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 hidden md:hidden"></div>
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="fixed md:static inset-y-0 right-0 w-80 max-w-[85vw] bg-slate-900 border-l border-slate-800 z-40 transform translate-x-full md:translate-x-0 transition-transform duration-200 flex flex-col h-full">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-500 flex items-center justify-center shrink-0">
+            <i data-lucide="message-square-heart" class="w-5 h-5 text-white"></i>
+          </div>
+          <div class="min-w-0">
+            <h2 class="text-sm font-extrabold text-white truncate">دردشة الرفيق</h2>
+            <p id="current-user-label" class="text-[11px] text-emerald-400 truncate"></p>
+          </div>
+        </div>
+        <button type="button" id="btn-close-sidebar" class="md:hidden p-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white" aria-label="إغلاق القائمة">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="px-4 py-2.5 bg-slate-950/60 border-b border-slate-800 flex items-center justify-between text-[11px]">
+        <span id="conn-mode-badge" class="inline-flex items-center gap-1.5 text-emerald-400 font-semibold">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          بلوتوث / Nearby (بدون واي فاي)
+        </span>
+        <span id="save-indicator" class="text-slate-400 flex items-center gap-1">
+          <i data-lucide="hard-drive" class="w-3.5 h-3.5 text-cyan-400"></i>
+          محفوظ تلقائياً
+        </span>
+      </div>
+
+      <div class="p-3 space-y-2.5 border-b border-slate-800">
+        <button type="button" id="btn-quick-connect-team" class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white text-xs font-extrabold flex items-center justify-center gap-2 transition shadow-md shadow-emerald-600/20">
+          <i data-lucide="radio" class="w-4 h-4"></i>
+          ربط سريع بالفريق (بضغطة زر)
+        </button>
+        <div class="relative">
+          <input id="room-search" type="text" placeholder="ابحث في الغرف..."
+            class="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3.5 py-2 pr-9 text-xs text-white placeholder-slate-500 outline-none" />
+          <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute right-3 top-2.5"></i>
+        </div>
+        <button type="button" id="btn-new-room" class="w-full py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center justify-center gap-2 transition shadow-md shadow-indigo-600/20">
+          <i data-lucide="plus-circle" class="w-4 h-4"></i>
+          إنشاء غرفة جديدة (غير محدود)
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-2.5 space-y-1" id="rooms-list"></div>
+
+      <div class="p-3 border-t border-slate-800 bg-slate-950/50 space-y-2">
+        <button type="button" id="btn-app-settings-sidebar" class="w-full py-2.5 px-3 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 text-indigo-200 text-xs font-bold flex items-center justify-center gap-2 transition">
+          <i data-lucide="settings" class="w-4 h-4 text-indigo-400"></i>
+          إعدادات التطبيق والموظفين
+        </button>
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" id="btn-export-backup" class="py-2 px-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-semibold flex items-center justify-center gap-1.5 transition">
+            <i data-lucide="download" class="w-3.5 h-3.5 text-cyan-400"></i>
+            حفظ نسخة
+          </button>
+          <button type="button" id="btn-import-backup" class="py-2 px-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-semibold flex items-center justify-center gap-1.5 transition">
+            <i data-lucide="upload" class="w-3.5 h-3.5 text-emerald-400"></i>
+            استعادة نسخة
+          </button>
+          <input id="import-file-input" type="file" accept=".json" class="hidden" />
+        </div>
+        <button type="button" id="btn-logout" class="w-full py-2 rounded-xl border border-slate-800 hover:bg-rose-500/10 hover:border-rose-500/30 hover:text-rose-300 text-slate-400 text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+          <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+          تبديل الحساب / تسجيل الخروج
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN CHAT AREA -->
+    <main class="flex-1 flex flex-col h-full min-w-0 bg-slate-950">
+      <header class="h-16 px-2.5 sm:px-5 border-b border-slate-800 bg-slate-900/70 backdrop-blur flex items-center justify-between gap-2 shrink-0">
+        <div class="flex items-center gap-2 min-w-0">
+          <button type="button" id="btn-open-sidebar" class="md:hidden p-2 rounded-xl bg-slate-800 text-slate-200 hover:bg-slate-700" aria-label="فتح الغرف">
+            <i data-lucide="menu" class="w-5 h-5"></i>
+          </button>
+          <div id="active-room-icon" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center shrink-0 font-bold text-base sm:text-lg"></div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <h1 id="active-room-name" class="text-xs sm:text-base font-extrabold text-white truncate"></h1>
+              <span id="active-room-lock-badge" class="hidden text-amber-400" title="غرفة محمية برمز PIN">
+                <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+              </span>
+              <span id="active-room-bot-badge" class="hidden lg:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-[10px] font-bold">
+                <i data-lucide="bot" class="w-3 h-3"></i>
+                بوت التنبيهات
+              </span>
+            </div>
+            <p id="active-room-desc" class="text-[10px] sm:text-[11px] text-slate-400 truncate"></p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-1 sm:gap-1.5 shrink-0">
+          <button type="button" id="btn-call-audio" class="p-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 transition" title="مكالمة صوتية داخلية">
+            <i data-lucide="phone" class="w-4 h-4"></i>
+          </button>
+          <button type="button" id="btn-call-video" class="p-2 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-cyan-300 transition" title="مكالمة فيديو داخلية">
+            <i data-lucide="video" class="w-4 h-4"></i>
+          </button>
+          <button type="button" id="btn-toggle-msg-search" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition" title="بحث في رسائل الغرفة">
+            <i data-lucide="search" class="w-4 h-4"></i>
+          </button>
+          <button type="button" id="btn-toggle-bot-panel" class="relative p-2 sm:px-2.5 sm:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 transition" title="التنبيهات والمهام">
+            <i data-lucide="bell-ring" class="w-4 h-4 text-amber-400"></i>
+            <span class="hidden xl:inline">التنبيهات والمهام</span>
+            <span id="alerts-badge" class="hidden px-1.5 py-0.5 rounded-full bg-amber-500 text-slate-950 text-[10px] font-extrabold leading-none">0</span>
+          </button>
+          <button type="button" id="btn-room-settings" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition" title="إعدادات الغرفة وأعضائها">
+            <i data-lucide="users" class="w-4 h-4 text-emerald-400"></i>
+          </button>
+          <button type="button" id="btn-app-settings-header" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition" title="إعدادات التطبيق">
+            <i data-lucide="settings" class="w-4 h-4 text-indigo-400"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- In-Room Search Bar -->
+      <div id="msg-search-bar" class="hidden px-3 sm:px-5 py-2 bg-slate-900/90 border-b border-slate-800 flex items-center gap-2 shrink-0">
+        <i data-lucide="search" class="w-4 h-4 text-indigo-400 shrink-0"></i>
+        <input id="msg-search-input" type="text" placeholder="ابحث داخل رسائل هذه الغرفة (رقم فاتورة، طلبية، اسم)..."
+          class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white outline-none" />
+        <button type="button" id="btn-close-msg-search" class="text-xs text-slate-400 hover:text-white px-2">إغلاق</button>
+      </div>
+
+      <!-- Bot Quick Commands Bar -->
+      <div class="px-3 sm:px-5 py-2 bg-slate-900/40 border-b border-slate-800/80 flex items-center gap-2 overflow-x-auto shrink-0">
+        <span class="text-[11px] text-slate-400 font-semibold shrink-0 flex items-center gap-1">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-cyan-400"></i>
+          أوامر البوت:
+        </span>
+        <button type="button" data-cmd="/تنبيه 10s متابعة الطلبية" class="cmd-chip shrink-0 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-indigo-600/30 border border-slate-700 text-[11px] text-cyan-300 font-medium transition">/تنبيه 10s</button>
+        <button type="button" data-cmd="/مهمة جرد المستودع اليوم" class="cmd-chip shrink-0 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-indigo-600/30 border border-slate-700 text-[11px] text-emerald-300 font-medium transition">/مهمة جديدة</button>
+        <button type="button" data-cmd="/ملخص" class="cmd-chip shrink-0 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-indigo-600/30 border border-slate-700 text-[11px] text-amber-300 font-medium transition">/ملخص الغرفة</button>
+        <button type="button" data-cmd="/مساعدة" class="cmd-chip shrink-0 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-indigo-600/30 border border-slate-700 text-[11px] text-slate-300 font-medium transition">/مساعدة</button>
+      </div>
+
+      <!-- Messages Feed -->
+      <div id="messages-container" class="flex-1 overflow-y-auto p-3 sm:p-5 space-y-3"></div>
+
+      <!-- Attachment Preview Bar -->
+      <div id="attachment-preview-bar" class="hidden px-4 py-2 bg-slate-900 border-t border-slate-800 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <i data-lucide="paperclip" class="w-4 h-4 text-indigo-400 shrink-0"></i>
+          <span id="attachment-name" class="text-xs text-slate-200 truncate"></span>
+        </div>
+        <button type="button" id="btn-remove-attachment" class="text-xs text-rose-400 hover:text-rose-300 font-bold">إزالة</button>
+      </div>
+
+      <!-- Voice Recording Indicator -->
+      <div id="voice-recording-bar" class="hidden px-4 py-2 bg-rose-950/60 border-t border-rose-500/30 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2 text-xs text-rose-200 font-bold">
+          <span class="w-2.5 h-2.5 rounded-full bg-rose-500 pulse-dot"></span>
+          <span>جاري تسجيل رسالة صوتية...</span>
+          <span id="voice-timer" class="font-mono text-rose-300">00:00</span>
+        </div>
+        <button type="button" id="btn-stop-voice" class="px-3 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold">إيقاف وإرسال</button>
+      </div>
+
+      <!-- Message Composer -->
+      <form id="message-form" class="p-3 sm:p-4 border-t border-slate-800 bg-slate-900/80 flex items-end gap-2 shrink-0">
+        <label class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer transition shrink-0" title="إرفاق صورة أو ملف محلي">
+          <i data-lucide="image-plus" class="w-5 h-5"></i>
+          <input id="file-attach-input" type="file" accept="image/*,.pdf,.txt,.csv,.xlsx" class="hidden" />
+        </label>
+        <button type="button" id="btn-record-voice" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-rose-400 transition shrink-0" title="تسجيل رسالة صوتية سريعة">
+          <i data-lucide="mic" class="w-5 h-5"></i>
+        </button>
+        <div class="flex-1 relative">
+          <textarea id="message-input" rows="1" placeholder="اكتب رسالتك أو أمراً للبوت مثل: /تنبيه 15s ..."
+            class="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 rounded-2xl px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none resize-none max-h-32 leading-relaxed"></textarea>
+        </div>
+        <button type="submit" class="p-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/25 transition shrink-0 flex items-center justify-center" aria-label="إرسال">
+          <i data-lucide="send-horizontal" class="w-5 h-5"></i>
+        </button>
+      </form>
+    </main>
+
+    <!-- ALERTS & TASKS DRAWER -->
+    <aside id="alerts-drawer" class="fixed inset-y-0 left-0 w-80 max-w-[90vw] bg-slate-900 border-r border-slate-800 z-40 transform -translate-x-full transition-transform duration-200 flex flex-col shadow-2xl">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i data-lucide="bell-ring" class="w-5 h-5 text-amber-400"></i>
+          <h3 class="text-sm font-extrabold text-white">مركز التنبيهات والمهام</h3>
+        </div>
+        <button type="button" id="btn-close-alerts" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="p-3 border-b border-slate-800 bg-slate-950/50">
+        <form id="quick-alert-form" class="space-y-2">
+          <input id="quick-alert-text" type="text" placeholder="عنوان التنبيه السريع..." required
+            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 outline-none" />
+          <div class="flex gap-2">
+            <select id="quick-alert-delay" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-white outline-none">
+              <option value="10">بعد 10 ثوانٍ (تجربة)</option>
+              <option value="60">بعد 1 دقيقة</option>
+              <option value="300">بعد 5 دقائق</option>
+              <option value="1800">بعد 30 دقيقة</option>
+              <option value="3600">بعد ساعة</option>
+            </select>
+            <button type="submit" class="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition">ضبط</button>
+          </div>
+        </form>
+      </div>
+      <div id="alerts-list" class="flex-1 overflow-y-auto p-3 space-y-2.5"></div>
+    </aside>
+  </div>
+
+  <!-- INTERNAL CALL OVERLAY (VOICE & VIDEO) -->
+  <div id="call-overlay" class="fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-50 hidden flex flex-col items-center justify-between p-6">
+    <div class="text-center space-y-1 mt-4">
+      <span id="call-type-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span>
+        مكالمة داخلية نشطة
+      </span>
+      <h2 id="call-room-title" class="text-xl font-extrabold text-white pt-2"></h2>
+      <p id="call-timer" class="text-sm font-mono text-slate-300">00:00</p>
+    </div>
+
+    <div class="relative w-full max-w-lg flex-1 my-6 flex items-center justify-center rounded-3xl bg-slate-900 border border-slate-800 overflow-hidden shadow-2xl">
+      <video id="call-local-video" autoplay muted playsinline class="w-full h-full object-cover hidden"></video>
+      <div id="call-avatar-placeholder" class="flex flex-col items-center gap-3 text-center p-6">
+        <div class="w-24 h-24 rounded-full bg-gradient-to-tr from-indigo-600 to-cyan-500 flex items-center justify-center shadow-xl">
+          <i id="call-center-icon" data-lucide="phone-call" class="w-10 h-10 text-white"></i>
+        </div>
+        <p id="call-status-note" class="text-xs text-slate-400 max-w-xs">قناة الاتصال الداخلي جاهزة — الصوت والصورة محليان دون إنترنت</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-4 mb-4">
+      <button type="button" id="btn-call-mute" class="w-12 h-12 rounded-full bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center transition" title="كتم الصوت">
+        <i data-lucide="mic" class="w-5 h-5"></i>
+      </button>
+      <button type="button" id="btn-call-cam" class="w-12 h-12 rounded-full bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center transition" title="تشغيل/إيقاف الكاميرا">
+        <i data-lucide="video" class="w-5 h-5"></i>
+      </button>
+      <button type="button" id="btn-call-end" class="w-14 h-14 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center shadow-lg shadow-rose-600/30 transition" title="إنهاء المكالمة">
+        <i data-lucide="phone-off" class="w-6 h-6"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: PIN UNLOCK -->
+  <div id="modal-pin-unlock" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="w-full max-w-xs bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl text-center space-y-4">
+      <div class="w-12 h-12 mx-auto rounded-2xl bg-amber-500/15 text-amber-400 flex items-center justify-center">
+        <i data-lucide="lock" class="w-6 h-6"></i>
+      </div>
+      <div>
+        <h3 class="text-sm font-extrabold text-white">غرفة محمية برمز PIN</h3>
+        <p id="pin-room-label" class="text-xs text-slate-400 mt-1"></p>
+      </div>
+      <form id="pin-unlock-form" class="space-y-3">
+        <input id="pin-unlock-input" type="password" inputmode="numeric" maxlength="6" dir="ltr" placeholder="••••" required
+          class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-center text-lg tracking-widest text-white outline-none" />
+        <div class="flex gap-2">
+          <button type="button" id="btn-cancel-pin" class="flex-1 py-2.5 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold">إلغاء</button>
+          <button type="submit" class="flex-1 py-2.5 rounded-xl bg-amber-500 text-slate-950 text-xs font-bold">فتح</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CREATE NEW ROOM -->
+  <div id="modal-new-room" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-extrabold text-white">إنشاء غرفة جديدة</h3>
+        <button type="button" id="btn-cancel-new-room" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form id="new-room-form" class="space-y-4">
+        <div>
+          <label for="new-room-name" class="block text-xs font-semibold text-slate-300 mb-1">اسم الغرفة</label>
+          <input id="new-room-name" type="text" placeholder="مثال: مستودع الأقمشة / طلبية 104" required maxlength="40"
+            class="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none" />
+        </div>
+        <div>
+          <label for="new-room-desc" class="block text-xs font-semibold text-slate-300 mb-1">وصف الغرفة</label>
+          <input id="new-room-desc" type="text" placeholder="متابعة الجرد والتسليمات اليومية" maxlength="80"
+            class="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="new-room-icon" class="block text-xs font-semibold text-slate-300 mb-1">الرمز</label>
+            <select id="new-room-icon" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white outline-none">
+              <option value="📦">📦 مستودع</option>
+              <option value="🏭">🏭 إنتاج / ورشة</option>
+              <option value="💼">💼 إدارة</option>
+              <option value="🧾">🧾 محاسبة</option>
+              <option value="🚚">🚚 شحن وتوصيل</option>
+              <option value="💬">💬 نقاش عام</option>
+            </select>
+          </div>
+          <div class="flex items-end pb-2">
+            <label class="inline-flex items-center gap-2 cursor-pointer text-xs text-slate-200 font-semibold">
+              <input id="new-room-bot" type="checkbox" checked class="rounded border-slate-700 bg-slate-950 text-indigo-600" />
+              تفعيل بوت التنبيهات
+            </label>
+          </div>
+        </div>
+        <button type="submit" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm transition">إنشاء الغرفة فوراً</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ROOM SETTINGS & MEMBERS -->
+  <div id="modal-room-settings" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-extrabold text-white">إعدادات الغرفة والأعضاء</h3>
+        <button type="button" id="btn-close-room-settings" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="space-y-3">
+        <label class="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer">
+          <span class="text-xs font-bold text-slate-200">تفعيل بوت التنبيهات في هذه الغرفة</span>
+          <input id="toggle-room-bot" type="checkbox" class="rounded border-slate-700 bg-slate-900 text-indigo-600" />
+        </label>
+
+        <!-- Room PIN Protection -->
+        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+          <label for="room-pin-input" class="block text-xs font-bold text-amber-300">قفل الغرفة برمز PIN (اختياري)</label>
+          <div class="flex gap-2">
+            <input id="room-pin-input" type="password" inputmode="numeric" maxlength="6" dir="ltr" placeholder="اتركه فارغاً لإلغاء القفل"
+              class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white outline-none text-left" />
+            <button type="button" id="btn-save-room-pin" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold">حفظ القفل</button>
+          </div>
+        </div>
+
+        <!-- Room Members & Send Full History -->
+        <div class="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+          <h4 class="text-xs font-extrabold text-emerald-300 flex items-center gap-1.5">
+            <i data-lucide="user-plus" class="w-4 h-4"></i>
+            إضافة موظف للغرفة مع سجل الرسائل
+          </h4>
+          <div class="flex gap-2">
+            <select id="room-add-employee-select" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-white outline-none"></select>
+            <button type="button" id="btn-room-add-employee" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shrink-0">إضافة</button>
+          </div>
+          <label class="inline-flex items-center gap-2 text-[11px] text-slate-300 cursor-pointer">
+            <input id="chk-send-full-history" type="checkbox" checked class="rounded border-slate-700 bg-slate-900 text-emerald-500" />
+            <span>إرسال سجل الرسائل بالكامل للموظف عند إضافته</span>
+          </label>
+          <div id="room-members-chips" class="flex flex-wrap gap-1.5 pt-1"></div>
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <button type="button" id="btn-export-room-bundle" class="py-2 px-2.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-200 text-[11px] font-bold flex items-center justify-center gap-1.5 transition">
+              <i data-lucide="package-check" class="w-3.5 h-3.5"></i>
+              تصدير الغرفة + السجل
+            </button>
+            <button type="button" id="btn-export-room-txt" class="py-2 px-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-bold flex items-center justify-center gap-1.5 transition">
+              <i data-lucide="file-text" class="w-3.5 h-3.5 text-cyan-400"></i>
+              تنزيل السجل (TXT)
+            </button>
+          </div>
+        </div>
+
+        <button type="button" id="btn-clear-room-msgs" class="w-full py-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-bold transition">
+          مسح رسائل هذه الغرفة فقط
+        </button>
+        <button type="button" id="btn-delete-room" class="w-full py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs font-bold transition">
+          حذف الغرفة بالكامل
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: COMPREHENSIVE APP SETTINGS -->
+  <div id="modal-app-settings" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="w-full max-w-xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
+      <div class="p-5 border-b border-slate-800 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center">
+            <i data-lucide="settings" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-extrabold text-white">إعدادات تطبيق دردشة الرفيق</h3>
+            <p class="text-[11px] text-slate-400">التخصيص، إدارة الموظفين، النسخ الاحتياطي، وحول البرنامج</p>
+          </div>
+        </div>
+        <button type="button" id="btn-close-app-settings" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-3 gap-1 p-2 bg-slate-950/70 border-b border-slate-800 shrink-0">
+        <button type="button" data-stab="general" class="stab-btn py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white transition">الإعدادات العامة</button>
+        <button type="button" data-stab="employees" class="stab-btn py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition">الموظفون والغرف</button>
+        <button type="button" data-stab="about" class="stab-btn py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition">البيانات وحول البرنامج</button>
+      </div>
+
+      <div class="p-5 overflow-y-auto space-y-4 flex-1">
+        <div id="stab-general" class="space-y-3">
+          <label class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-950 border border-slate-800 cursor-pointer">
+            <div>
+              <p class="text-xs font-bold text-white">صوت تنبيهات البوت</p>
+              <p class="text-[11px] text-slate-400">إصدار نغمة تنبيه عند حلول موعد التذكير</p>
+            </div>
+            <input id="set-sound" type="checkbox" class="rounded border-slate-700 bg-slate-900 text-indigo-600" />
+          </label>
+          <label class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-950 border border-slate-800 cursor-pointer">
+            <div>
+              <p class="text-xs font-bold text-white">حجم خط مريح وكبير</p>
+              <p class="text-[11px] text-slate-400">تكبير النصوص لسهولة القراءة على الهاتف</p>
+            </div>
+            <input id="set-large-font" type="checkbox" class="rounded border-slate-700 bg-slate-900 text-indigo-600" />
+          </label>
+          <label class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-950 border border-slate-800 cursor-pointer">
+            <div>
+              <p class="text-xs font-bold text-white">إضافة الموظفين الجدد تلقائياً للغرف العامة</p>
+              <p class="text-[11px] text-slate-400">منح أي حساب جديد وصولاً مباشراً للغرف المفتوحة مع سجلها الكامل</p>
+            </div>
+            <input id="set-auto-join" type="checkbox" class="rounded border-slate-700 bg-slate-900 text-indigo-600" />
+          </label>
+
+          <div class="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5">
+            <p class="text-xs font-extrabold text-amber-300">نغمات التنبيهات والمكالمات القوية</p>
+            <div class="flex items-center gap-2">
+              <select id="set-notif-tone" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
+                <option value="factory">نغمة إشعار: جرس المصنع القوي</option>
+                <option value="urgent">نغمة إشعار: صفارة تنبيه عاجلة</option>
+                <option value="chime">نغمة إشعار: رنين واضح متصاعد</option>
+              </select>
+              <button type="button" id="btn-test-notif-tone" class="px-3 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-bold shrink-0">تجربة</button>
+            </div>
+            <div class="flex items-center gap-2">
+              <select id="set-call-tone" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
+                <option value="classic">نغمة مكالمة: رنين هاتف كلاسيكي قوي</option>
+                <option value="digital">نغمة مكالمة: رنين رقمي متكرر</option>
+                <option value="emergency">نغمة مكالمة: رنين طوارئ مرتفع</option>
+              </select>
+              <button type="button" id="btn-test-call-tone" class="px-3 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-xs font-bold shrink-0">تجربة</button>
+            </div>
+            <div class="flex items-center justify-between pt-1">
+              <span class="text-[11px] text-slate-300 font-semibold">قوة صوت النغمات</span>
+              <select id="set-ring-volume" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white outline-none">
+                <option value="0.7">عالي</option>
+                <option value="1.0">أقصى قوة (موصى به للورش)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+            <label for="set-conn-mode" class="block text-xs font-extrabold text-cyan-300">طريقة ربط الموظفين (الأسهل على الإطلاق)</label>
+            <select id="set-conn-mode" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
+              <option value="bluetooth">ربط تلقائي قريب بضغطة زر (بدون إنترنت)</option>
+              <option value="qr_bridge">ربط عبر نقطة اتصال هاتف المدير (Hotspot بدون إنترنت)</option>
+              <option value="local_only">العمل على هذا الجهاز فقط (ملاحظات وتنبيهات)</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="stab-employees" class="hidden space-y-4">
+          <div class="p-3.5 rounded-2xl bg-emerald-950/20 border border-emerald-500/30 space-y-2.5">
+            <h4 class="text-xs font-extrabold text-emerald-300">إضافة موظف مسجل إلى غرفة مع إرسال السجل الكامل</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <select id="settings-emp-select" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none"></select>
+              <select id="settings-room-select" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none"></select>
+            </div>
+            <button type="button" id="btn-settings-assign-emp" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center justify-center gap-2">
+              <i data-lucide="send" class="w-3.5 h-3.5"></i>
+              إضافة الموظف للغرفة + إرسال سجل الرسائل بالكامل
+            </button>
+          </div>
+          <div>
+            <h4 class="text-xs font-bold text-slate-300 mb-2">قائمة الموظفين المسجلين على الجهاز:</h4>
+            <div id="settings-employees-list" class="space-y-2"></div>
+          </div>
+        </div>
+
+        <div id="stab-about" class="hidden space-y-4">
+          <div class="p-4 rounded-2xl bg-gradient-to-br from-indigo-950/60 to-slate-950 border border-indigo-500/30 text-center space-y-2">
+            <div class="w-12 h-12 mx-auto rounded-2xl bg-indigo-600/20 text-indigo-300 flex items-center justify-center">
+              <i data-lucide="award" class="w-6 h-6"></i>
+            </div>
+            <p class="text-sm font-extrabold text-white">تم تصميم البرنامج بالكامل بإشراف المهندس محمد سليم القاق</p>
+            <p class="text-[11px] text-slate-400">نظام دردشة داخلي بدون إنترنت • غرف غير محدودة • مكالمات داخلية • بوت تنبيهات</p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <button type="button" id="btn-settings-import-room" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs font-bold flex items-center justify-center gap-2 transition">
+              <i data-lucide="folder-input" class="w-4 h-4 text-cyan-400"></i>
+              استيراد حزمة غرفة وسجلها
+            </button>
+            <input id="import-room-input" type="file" accept=".json" class="hidden" />
+            <button type="button" id="btn-settings-export-all" class="py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center justify-center gap-2 transition">
+              <i data-lucide="download" class="w-4 h-4"></i>
+              تصدير كافة بيانات التطبيق
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ONE-TAP TEAM CONNECT -->
+  <div id="modal-quick-connect" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl text-center space-y-4">
+      <div class="w-14 h-14 mx-auto rounded-2xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center">
+        <i data-lucide="radio" class="w-7 h-7"></i>
+      </div>
+      <div>
+        <h3 class="text-base font-extrabold text-white">الربط السريع مع الفريق</h3>
+        <p class="text-xs text-slate-400 mt-1">لا يحتاج أي إعدادات — اضغط الزر للربط التلقائي مع الأجهزة القريبة</p>
+      </div>
+      <div id="qc-status-box" class="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-slate-300 space-y-2">
+        <p id="qc-status-text" class="font-bold text-emerald-300">جاهز للربط التلقائي بدون إنترنت</p>
+        <p class="text-[11px] text-slate-400">عند تحويل التطبيق إلى أندرويد (APK)، يكتشف هذا الزر هواتف الموظفين القريبة تلقائياً ويتصل بها فوراً.</p>
+      </div>
+      <div class="flex gap-2">
+        <button type="button" id="btn-qc-close" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold">إغلاق</button>
+        <button type="button" id="btn-qc-connect-now" class="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition">اتصال الآن</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const STORAGE_KEY = 'alrafiq_chat_v1';
+      const DB_NAME = 'AlRafiqOfflineDB';
+      const DB_STORE = 'appState';
+
+      const DEFAULT_STATE = {
+        users: [],
+        currentUserEmail: null,
+        activeRoomId: 'room-general',
+        settings: { soundEnabled: true, largeFont: false, autoJoinNewEmployees: true, notifTone: 'factory', callTone: 'classic', ringVolume: 1.0, connectionMode: 'bluetooth' },
+        rooms: [
+          { id: 'room-general', name: 'الإدارة والمتابعة العامة', desc: 'قناة رئيسية بدون إنترنت • بوت التنبيهات مفعل', icon: '💼', botEnabled: true, pin: '', members: ['*'], createdAt: Date.now() },
+          { id: 'room-warehouse', name: 'المستودع والطلبيات', desc: 'تسجيل حركات المستودع والتنبيهات الفورية', icon: '📦', botEnabled: true, pin: '', members: ['*'], createdAt: Date.now() },
+          { id: 'room-accounting', name: 'المحاسبة والفواتير', desc: 'ملاحظات الحسابات اليومية والنسخ الاحتياطي', icon: '🧾', botEnabled: true, pin: '', members: ['*'], createdAt: Date.now() }
+        ],
+        messages: {
+          'room-general': [{
+            id: 'm-welcome-1', senderName: 'بوت الرفيق', senderEmail: 'bot@alrafiq.local', isBot: true, ackBy: [],
+            text: 'أهلاً بك في دردشة الرفيق! كل رسائلك وغرفك محفوظة محلياً بدون إنترنت.\nجرّب الأوامر: /تنبيه 10s فحص الجرد — أو /مهمة متابعة العميل — أو /ملخص.', timestamp: Date.now()
+          }],
+          'room-warehouse': [{
+            id: 'm-welcome-2', senderName: 'بوت الرفيق', senderEmail: 'bot@alrafiq.local', isBot: true, ackBy: [],
+            text: 'غرفة المستودع جاهزة. يمكنك إرسال الصور والرسائل الصوتية وتثبيت تنبيهات التسليم.', timestamp: Date.now()
+          }],
+          'room-accounting': []
+        },
+        alerts: []
+      };
+
+      let state = structuredClone(DEFAULT_STATE);
+      let pendingAttachment = null;
+      let alertTimers = new Map();
+      let unlockedRooms = new Set();
+      let pendingUnlockRoomId = null;
+
+      // Call state
+      let activeCall = { active: false, isVideo: false, stream: null, muted: false, camOff: false, seconds: 0, intervalId: null };
+      // Voice recording state
+      let voiceRec = { recorder: null, chunks: [], intervalId: null, seconds: 0 };
+
+      function openIDB() {
+        return new Promise((resolve, reject) => {
+          try {
+            if (!window.indexedDB) return reject(new Error('No IndexedDB'));
+            const req = indexedDB.open(DB_NAME, 1);
+            req.onupgradeneeded = () => {
+              const db = req.result;
+              if (!db.objectStoreNames.contains(DB_STORE)) db.createObjectStore(DB_STORE);
+            };
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error);
+          } catch (err) { reject(err); }
+        });
+      }
+
+      async function loadState() {
+        try {
+          const db = await openIDB();
+          const data = await new Promise((resolve, reject) => {
+            const tx = db.transaction(DB_STORE, 'readonly');
+            const req = tx.objectStore(DB_STORE).get(STORAGE_KEY);
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error);
+          });
+          if (data && typeof data === 'object' && Array.isArray(data.rooms)) {
+            state = { ...structuredClone(DEFAULT_STATE), ...data, settings: { ...DEFAULT_STATE.settings, ...(data.settings || {}) } };
+            return;
+          }
+        } catch (_) {}
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed && Array.isArray(parsed.rooms)) {
+              state = { ...structuredClone(DEFAULT_STATE), ...parsed, settings: { ...DEFAULT_STATE.settings, ...(parsed.settings || {}) } };
+            }
+          }
+        } catch (_) {}
+      }
+
+      async function saveState() {
+        const indicator = document.getElementById('save-indicator');
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (_) {}
+        try {
+          const db = await openIDB();
+          await new Promise((resolve, reject) => {
+            const tx = db.transaction(DB_STORE, 'readwrite');
+            tx.objectStore(DB_STORE).put(state, STORAGE_KEY);
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+          });
+        } catch (_) {}
+        if (indicator) {
+          indicator.innerHTML = '<i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-400"></i> تم الحفظ';
+          lucide.createIcons({ root: indicator });
+        }
+      }
+
+      function applySettings() {
+        document.body.classList.toggle('font-large', !!state.settings.largeFont);
+        const badge = document.getElementById('conn-mode-badge');
+        if (badge) {
+          const labels = {
+            bluetooth: 'ربط تلقائي بالفريق (بدون إنترنت)',
+            qr_bridge: 'نقطة اتصال المدير (بدون إنترنت)',
+            local_only: 'وضع محلي منفرد'
+          };
+          const txt = labels[state.settings.connectionMode] || labels.bluetooth;
+          badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span> ${txt}`;
+        }
+      }
+
+      function showToast(msg, type = 'info') {
+        const container = document.getElementById('toast-container');
+        const colors = {
+          info: 'bg-slate-800 border-slate-700 text-slate-100',
+          success: 'bg-emerald-950/95 border-emerald-500/40 text-emerald-200',
+          warning: 'bg-amber-950/95 border-amber-500/40 text-amber-200',
+          error: 'bg-rose-950/95 border-rose-500/40 text-rose-200'
+        };
+        const el = document.createElement('div');
+        el.className = `pointer-events-auto px-4 py-3 rounded-2xl border shadow-xl text-xs sm:text-sm font-semibold flex items-center justify-between gap-3 msg-enter ${colors[type] || colors.info}`;
+        el.textContent = msg;
+        container.appendChild(el);
+        setTimeout(() => {
+          el.style.opacity = '0';
+          el.style.transition = 'opacity 0.25s';
+          setTimeout(() => el.remove(), 260);
+        }, 3500);
+      }
+
+      let callRingInterval = null;
+
+      function playToneSequence(steps, waveType = 'triangle') {
+        if (!state.settings.soundEnabled) return;
+        try {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (!AudioCtx) return;
+          const ctx = new AudioCtx();
+          const vol = Math.min(1.0, Math.max(0.2, parseFloat(state.settings.ringVolume || 1.0))) * 0.45;
+          let t = ctx.currentTime;
+          steps.forEach(([freq, dur, gap = 0.04]) => {
+            if (freq > 0) {
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.type = waveType;
+              osc.frequency.setValueAtTime(freq, t);
+              gain.gain.setValueAtTime(vol, t);
+              gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+              osc.connect(gain);
+              gain.connect(ctx.destination);
+              osc.start(t);
+              osc.stop(t + dur + 0.01);
+            }
+            t += dur + gap;
+          });
+        } catch (_) {}
+      }
+
+      function playAlertBeep(overrideTone) {
+        const tone = overrideTone || state.settings.notifTone || 'factory';
+        if (tone === 'urgent') {
+          playToneSequence([[1320, 0.14, 0.05], [1320, 0.14, 0.05], [1568, 0.22, 0.05]], 'sawtooth');
+        } else if (tone === 'chime') {
+          playToneSequence([[784, 0.15, 0.04], [988, 0.15, 0.04], [1175, 0.28, 0.04]], 'triangle');
+        } else {
+          playToneSequence([[880, 0.18, 0.04], [1175, 0.18, 0.06], [880, 0.18, 0.04], [1318, 0.3, 0.04]], 'square');
+        }
+      }
+
+      function playCallRingOnce(overrideTone) {
+        const tone = overrideTone || state.settings.callTone || 'classic';
+        if (tone === 'digital') {
+          playToneSequence([[659, 0.12, 0.03], [784, 0.12, 0.03], [988, 0.12, 0.03], [1318, 0.24, 0.05]], 'triangle');
+        } else if (tone === 'emergency') {
+          playToneSequence([[1046, 0.18, 0.04], [784, 0.18, 0.04], [1046, 0.18, 0.04], [784, 0.18, 0.04]], 'sawtooth');
+        } else {
+          playToneSequence([[523, 0.16, 0.02], [659, 0.16, 0.08], [523, 0.16, 0.02], [659, 0.24, 0.08]], 'square');
+        }
+      }
+
+      function startCallRingtone() {
+        stopCallRingtone();
+        playCallRingOnce();
+        let count = 0;
+        callRingInterval = setInterval(() => {
+          count += 1;
+          if (count >= 3 || !activeCall.active) { stopCallRingtone(); return; }
+          playCallRingOnce();
+        }, 1600);
+      }
+
+      function stopCallRingtone() {
+        if (callRingInterval) { clearInterval(callRingInterval); callRingInterval = null; }
+      }
+
+      async function hashPassword(str) {
+        try {
+          if (window.crypto && crypto.subtle) {
+            const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+            return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+          }
+        } catch (_) {}
+        return btoa(unescape(encodeURIComponent(str)));
+      }
+
+      function isValidGmail(email) {
+        return /^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(email.trim());
+      }
+
+      function formatTime(ts) {
+        try { return new Date(ts).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }); }
+        catch (_) { return ''; }
+      }
+
+      function formatSec(sec) {
+        const m = String(Math.floor(sec / 60)).padStart(2, '0');
+        const s = String(sec % 60).padStart(2, '0');
+        return `${m}:${s}`;
+      }
+
+      function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      function getCurrentUser() {
+        return state.users.find(u => u.email === state.currentUserEmail) || null;
+      }
+
+      function getActiveRoom() {
+        return state.rooms.find(r => r.id === state.activeRoomId) || state.rooms[0] || null;
+      }
+
+      function downloadJson(filename, obj) {
+        const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      function assignEmployeeToRoom(email, roomId, sendFullHistory) {
+        const emp = state.users.find(u => u.email === email);
+        const room = state.rooms.find(r => r.id === roomId);
+        if (!emp || !room) return false;
+        if (!Array.isArray(room.members)) room.members = ['*'];
+        if (!room.members.includes(email)) room.members.push(email);
+        const totalMsgs = (state.messages[room.id] || []).length;
+        addMessage(room.id, {
+          id: 'bot-' + Date.now(), senderName: 'بوت الرفيق', senderEmail: 'bot@alrafiq.local', isBot: true, ackBy: [],
+          text: sendFullHistory
+            ? `👤 تمت إضافة الموظف «${emp.name}» (${emp.role}) إلى الغرفة وإتاحة سجل الرسائل بالكامل (${totalMsgs} رسالة).`
+            : `👤 تمت إضافة الموظف «${emp.name}» (${emp.role}) إلى الغرفة.`,
+          timestamp: Date.now()
+        });
+        saveState();
+        return true;
+      }
+
+      function exportRoomBundle(room) {
+        downloadJson(`alrafiq-room-${room.id}.json`, {
+          type: 'alrafiq_room_bundle', exportedAt: Date.now(),
+          room: structuredClone(room), messages: structuredClone(state.messages[room.id] || [])
+        });
+        showToast(`تم تصدير غرفة «${room.name}» مع كامل سجل رسائلها`, 'success');
+      }
+
+      // --- Internal Call (Voice & Video) ---
+      async function startInternalCall(isVideo) {
+        const room = getActiveRoom();
+        if (!room) return;
+        activeCall.active = true;
+        activeCall.isVideo = isVideo;
+        activeCall.muted = false;
+        activeCall.camOff = !isVideo;
+        activeCall.seconds = 0;
+
+        document.getElementById('call-room-title').textContent = `${room.icon || '💬'} ${room.name}`;
+        document.getElementById('call-timer').textContent = '00:00';
+        document.getElementById('call-type-badge').innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span> ${isVideo ? 'مكالمة فيديو داخلية' : 'مكالمة صوتية داخلية'}`;
+        document.getElementById('call-overlay').classList.remove('hidden');
+        startCallRingtone();
+
+        const videoEl = document.getElementById('call-local-video');
+        const placeholder = document.getElementById('call-avatar-placeholder');
+        const note = document.getElementById('call-status-note');
+
+        try {
+          if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: isVideo });
+            activeCall.stream = stream;
+            if (isVideo) {
+              videoEl.srcObject = stream;
+              videoEl.classList.remove('hidden');
+              placeholder.classList.add('hidden');
+            } else {
+              videoEl.classList.add('hidden');
+              placeholder.classList.remove('hidden');
+              note.textContent = 'الميكروفون المحلي نشط — المكالمة الصوتية جارية';
+            }
+          } else {
+            throw new Error('No mediaDevices');
+          }
+        } catch (_) {
+          videoEl.classList.add('hidden');
+          placeholder.classList.remove('hidden');
+          note.textContent = 'وضع المعاينة الداخلية (لم يتم منح إذن الكاميرا/الميكروفون أو لا يتوفر عتاد)';
+        }
+
+        clearInterval(activeCall.intervalId);
+        activeCall.intervalId = setInterval(() => {
+          activeCall.seconds += 1;
+          document.getElementById('call-timer').textContent = formatSec(activeCall.seconds);
+        }, 1000);
+        lucide.createIcons({ root: document.getElementById('call-overlay') });
+      }
+
+      function endInternalCall() {
+        if (!activeCall.active) return;
+        stopCallRingtone();
+        clearInterval(activeCall.intervalId);
+        if (activeCall.stream) {
+          activeCall.stream.getTracks().forEach(t => t.stop());
+          activeCall.stream = null;
+        }
+        const duration = formatSec(activeCall.seconds);
+        const wasVideo = activeCall.isVideo;
+        activeCall.active = false;
+        document.getElementById('call-local-video').srcObject = null;
+        document.getElementById('call-overlay').classList.add('hidden');
+
+        const room = getActiveRoom();
+        if (room) {
+          addMessage(room.id, {
+            id: 'bot-call-' + Date.now(), senderName: 'بوت الرفيق', senderEmail: 'bot@alrafiq.local', isBot: true, ackBy: [],
+            text: `${wasVideo ? '📹 انتهت مكالمة الفيديو الداخلية' : '📞 انتهت المكالمة الصوتية الداخلية'} • المدة: ${duration}`,
+            timestamp: Date.now()
+          });
+        }
+      }
+
+      // --- Voice Notes ---
+      async function toggleVoiceRecording() {
+        const bar = document.getElementById('voice-recording-bar');
+        const timerEl = document.getElementById('voice-timer');
+        if (voiceRec.recorder && voiceRec.recorder.state === 'recording') {
+          voiceRec.recorder.stop();
+          return;
+        }
+        try {
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
+            showToast('التسجيل الصوتي غير مدعوم في هذا المتصفح', 'warning');
+            return;
+          }
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          const recorder = new MediaRecorder(stream);
+          voiceRec.chunks = [];
+          voiceRec.seconds = 0;
+          voiceRec.recorder = recorder;
+          timerEl.textContent = '00:00';
+          bar.classList.remove('hidden');
+
+          recorder.ondataavailable = (e) => { if (e.data.size > 0) voiceRec.chunks.push(e.data); };
+          recorder.onstop = () => {
+            clearInterval(voiceRec.intervalId);
+            stream.getTracks().forEach(t => t.stop());
+            bar.classList.add('hidden');
+            const blob = new Blob(voiceRec.chunks, { type: 'audio/webm' });
+            const reader = new FileReader();
+            reader.onload = () => {
+              const room = getActiveRoom();
+              const user = getCurrentUser();
+              if (!room || !user) return;
+              addMessage(room.id, {
+                id: 'm-voice-' + Date.now(),
+                senderName: user.name, senderEmail: user.email, isBot: false,
+                text: `🎤 رسالة صوتية (${formatSec(voiceRec.seconds)})`,
+                attachment: { name: 'voice-note.webm', type: 'audio/webm', dataUrl: reader.result },
+                timestamp: Date.now()
+              });
+            };
+            reader.readAsDataURL(blob);
+          };
+
+          recorder.start();
+          voiceRec.intervalId = setInterval(() => {
+            voiceRec.seconds += 1;
+            timerEl.textContent = formatSec(voiceRec.seconds);
+            if (voiceRec.seconds >= 60) recorder.stop();
+          }, 1000);
+        } catch (_) {
+          showToast('تعذر الوصول للميكروفون للتسجيل الصوتي', 'warning');
+        }
+      }
+
+      // --- Auth ---
+      function switchAuthTab(mode) {
+        const isLogin = mode === 'login';
+        document.getElementById('login-form').classList.toggle('hidden', !isLogin);
+        document.getElementById('signup-form').classList.toggle('hidden', isLogin);
+        document.getElementById('tab-login').className = isLogin
+          ? 'py-2 rounded-lg text-sm font-bold transition bg-indigo-600 text-white shadow'
+          : 'py-2 rounded-lg text-sm font-bold transition text-slate-400 hover:text-white';
+        document.getElementById('tab-signup').className = !isLogin
+          ? 'py-2 rounded-lg text-sm font-bold transition bg-emerald-600 text-white shadow'
+          : 'py-2 rounded-lg text-sm font-bold transition text-slate-400 hover:text-white';
+      }
+
+      function renderSavedAccounts() {
+        const box = document.getElementById('saved-accounts-box');
+        const list = document.getElementById('saved-accounts-list');
+        if (!state.users.length) { box.classList.add('hidden'); return; }
+        box.classList.remove('hidden');
+        list.innerHTML = '';
+        state.users.forEach(u => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'px-3 py-1.5 rounded-xl bg-slate-950 hover:bg-indigo-600/20 border border-slate-800 text-xs text-slate-200 flex items-center gap-1.5 transition';
+          btn.innerHTML = `<span class="w-2 h-2 rounded-full bg-indigo-400"></span><span>${escapeHtml(u.name)}</span>`;
+          btn.addEventListener('click', () => {
+            document.getElementById('login-email').value = u.email;
+            switchAuthTab('login');
+            document.getElementById('login-password').focus();
+          });
+          list.appendChild(btn);
+        });
+      }
+
+      function enterApp() {
+        const user = getCurrentUser();
+        if (!user) return;
+        applySettings();
+        document.getElementById('auth-screen').classList.add('hidden');
+        document.getElementById('app-screen').classList.remove('hidden');
+        document.getElementById('current-user-label').textContent = `${user.name} (${user.role})`;
+        renderRooms();
+        renderActiveRoom();
+        renderAlerts();
+        scheduleAllPendingAlerts();
+        lucide.createIcons();
+      }
+
+      // --- Rooms & Messages ---
+      function selectRoom(room) {
+        if (room.pin && !unlockedRooms.has(room.id)) {
+          pendingUnlockRoomId = room.id;
+          document.getElementById('pin-room-label').textContent = `أدخل رمز الدخول لغرفة «${room.name}»`;
+          document.getElementById('pin-unlock-input').value = '';
+          document.getElementById('modal-pin-unlock').classList.remove('hidden');
+          document.getElementById('pin-unlock-input').focus();
+          return;
+        }
+        state.activeRoomId = room.id;
+        saveState();
+        renderRooms();
+        renderActiveRoom();
+        closeMobileSidebar();
+      }
+
+      function renderRooms() {
+        const list = document.getElementById('rooms-list');
+        const query = (document.getElementById('room-search').value || '').trim().toLowerCase();
+        list.innerHTML = '';
+
+        const filtered = state.rooms.filter(r =>
+          r.name.toLowerCase().includes(query) || (r.desc || '').toLowerCase().includes(query)
+        );
+        if (!filtered.length) {
+          list.innerHTML = '<p class="text-xs text-slate-500 text-center py-6">لا توجد غرف مطابقة</p>';
+          return;
+        }
+
+        filtered.forEach(room => {
+          const isActive = room.id === state.activeRoomId;
+          const msgs = state.messages[room.id] || [];
+          const lastMsg = msgs[msgs.length - 1];
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = `w-full text-right p-2.5 rounded-2xl flex items-center gap-3 transition border ${
+            isActive ? 'bg-indigo-600/15 border-indigo-500/40 text-white' : 'bg-transparent border-transparent hover:bg-slate-800/70 text-slate-300'
+          }`;
+          btn.innerHTML = `
+            <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-lg shrink-0">${escapeHtml(room.icon || '💬')}</div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between gap-1">
+                <span class="text-xs font-bold truncate">${room.pin ? '🔒 ' : ''}${escapeHtml(room.name)}</span>
+                <span class="text-[10px] text-slate-500 shrink-0">${msgs.length}</span>
+              </div>
+              <p class="text-[11px] text-slate-400 truncate mt-0.5">${lastMsg ? escapeHtml(lastMsg.text || 'مرفق') : escapeHtml(room.desc || 'غرفة جديدة')}</p>
+            </div>
+          `;
+          btn.addEventListener('click', () => selectRoom(room));
+          list.appendChild(btn);
+        });
+      }
+
+      function renderActiveRoom() {
+        const room = getActiveRoom();
+        if (!room) return;
+        document.getElementById('active-room-icon').textContent = room.icon || '💬';
+        document.getElementById('active-room-name').textContent = room.name;
+        document.getElementById('active-room-desc').textContent = room.desc || 'غرفة محلية محفوظة بدون إنترنت';
+        document.getElementById('active-room-bot-badge').classList.toggle('hidden', !room.botEnabled);
+        document.getElementById('active-room-lock-badge').classList.toggle('hidden', !room.pin);
+        renderMessages();
+      }
+
+      function renderMessages() {
+        const room = getActiveRoom();
+        const container = document.getElementById('messages-container');
+        const user = getCurrentUser();
+        const searchQ = (document.getElementById('msg-search-input').value || '').trim().toLowerCase();
+        container.innerHTML = '';
+        if (!room) return;
+
+        let msgs = state.messages[room.id] || [];
+        if (searchQ) {
+          msgs = msgs.filter(m => (m.text || '').toLowerCase().includes(searchQ) || (m.senderName || '').toLowerCase().includes(searchQ));
+        }
+
+        if (!msgs.length) {
+          container.innerHTML = `
+            <div class="h-full flex flex-col items-center justify-center text-center text-slate-500 px-6">
+              <div class="w-14 h-14 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center mb-3">
+                <i data-lucide="messages-square" class="w-7 h-7 text-indigo-400"></i>
+              </div>
+              <p class="text-sm font-bold text-slate-300">${searchQ ? 'لا توجد نتائج مطابقة للبحث' : `لا توجد رسائل بعد في «${escapeHtml(room.name)}»`}</p>
+              <p class="text-xs text-slate-500 mt-1">ابدأ الكتابة الآن أو استخدم أوامر البوت مثل /تنبيه أو /مهمة</p>
+            </div>
+          `;
+          lucide.createIcons({ root: container });
+          return;
+        }
+
+        msgs.forEach(m => {
+          const isMe = user && m.senderEmail === user.email && !m.isBot;
+          const wrap = document.createElement('div');
+          wrap.className = `flex flex-col msg-enter ${isMe ? 'items-start' : m.isBot ? 'items-center' : 'items-end'}`;
+
+          if (m.isBot) {
+            const acks = Array.isArray(m.ackBy) ? m.ackBy : [];
+            const iAcked = user && acks.includes(user.name);
+            wrap.innerHTML = `
+              <div class="max-w-xl w-full sm:w-auto bg-cyan-950/40 border border-cyan-500/30 rounded-2xl px-4 py-3 text-xs sm:text-sm text-cyan-100 shadow-sm">
+                <div class="flex items-center justify-between gap-3 text-[11px] font-bold text-cyan-300 mb-1">
+                  <span class="flex items-center gap-1.5"><i data-lucide="bot" class="w-3.5 h-3.5"></i>${escapeHtml(m.senderName)}</span>
+                  <span class="text-cyan-500/80 font-normal">${formatTime(m.timestamp)}</span>
+                </div>
+                <div class="whitespace-pre-line leading-relaxed">${escapeHtml(m.text)}</div>
+                <div class="mt-2 pt-2 border-t border-cyan-500/20 flex items-center justify-between gap-2 text-[10px]">
+                  <button type="button" class="btn-ack px-2.5 py-1 rounded-lg ${iAcked ? 'bg-emerald-600/30 text-emerald-200' : 'bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-200'} font-bold transition">
+                    ${iAcked ? '✓ تم تأكيد الاستلام' : 'تأكيد الاستلام'}
+                  </button>
+                  <span class="text-cyan-400/80">${acks.length ? `استلمها: ${escapeHtml(acks.join('، '))}` : ''}</span>
+                </div>
+              </div>
+            `;
+            wrap.querySelector('.btn-ack').addEventListener('click', () => {
+              if (!user) return;
+              if (!Array.isArray(m.ackBy)) m.ackBy = [];
+              if (!m.ackBy.includes(user.name)) {
+                m.ackBy.push(user.name);
+                saveState();
+                renderMessages();
+              }
+            });
+          } else {
+            const bubbleClass = isMe
+              ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-sm'
+              : 'bg-slate-800 text-slate-100 rounded-2xl rounded-tl-sm border border-slate-700';
+            let attachmentHtml = '';
+            if (m.attachment) {
+              if (m.attachment.type && m.attachment.type.startsWith('image/')) {
+                attachmentHtml = `<img src="${m.attachment.dataUrl}" alt="${escapeHtml(m.attachment.name)}" class="mt-2 rounded-xl max-h-56 w-auto object-cover border border-white/10" />`;
+              } else if (m.attachment.type && m.attachment.type.startsWith('audio/')) {
+                attachmentHtml = `<audio controls src="${m.attachment.dataUrl}" class="mt-2 max-w-full h-9"></audio>`;
+              } else {
+                attachmentHtml = `<div class="mt-2 px-3 py-2 rounded-xl bg-black/20 flex items-center gap-2 text-xs"><i data-lucide="file-text" class="w-4 h-4 shrink-0"></i><span class="truncate">${escapeHtml(m.attachment.name)}</span></div>`;
+              }
+            }
+            wrap.innerHTML = `
+              <div class="max-w-[85%] sm:max-w-md px-4 py-2.5 shadow-sm ${bubbleClass}">
+                <div class="flex items-center justify-between gap-3 mb-1 text-[10px] opacity-80">
+                  <span class="font-bold">${escapeHtml(m.senderName)}</span>
+                  <span>${formatTime(m.timestamp)}</span>
+                </div>
+                ${m.text ? `<div class="text-xs sm:text-sm whitespace-pre-line leading-relaxed break-words">${escapeHtml(m.text)}</div>` : ''}
+                ${attachmentHtml}
+              </div>
+            `;
+          }
+          container.appendChild(wrap);
+        });
+
+        lucide.createIcons({ root: container });
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function addMessage(roomId, msgObj) {
+        if (!state.messages[roomId]) state.messages[roomId] = [];
+        state.messages[roomId].push(msgObj);
+        saveState();
+        if (roomId === state.activeRoomId) renderMessages();
+        renderRooms();
+      }
+
+      // --- Bot Engine ---
+      function parseDelaySeconds(token) {
+        const m = /^(\d+)\s*(s|ث|m|د|h|س)?$/i.exec(token.trim());
+        if (!m) return null;
+        const val = parseInt(m[1], 10);
+        const unit = (m[2] || 'm').toLowerCase();
+        if (unit === 's' || unit === 'ث') return val;
+        if (unit === 'h' || unit === 'س') return val * 3600;
+        return val * 60;
+      }
+
+      function createAlert(roomId, title, delaySec, kind = 'alert') {
+        const triggerAt = kind === 'alert' ? Date.now() + delaySec * 1000 : null;
+        const item = {
+          id: 'al-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+          roomId, title, kind, done: false, createdAt: Date.now(), triggerAt
+        };
+        state.alerts.unshift(item);
+        saveState();
+        renderAlerts();
+        if (triggerAt) scheduleAlertTimer(item);
+        return item;
+      }
+
+      function scheduleAlertTimer(item) {
+        if (!item.triggerAt || item.done) return;
+        if (alertTimers.has(item.id)) clearTimeout(alertTimers.get(item.id));
+        const remaining = item.triggerAt - Date.now();
+        const fire = () => {
+          const target = state.alerts.find(a => a.id === item.id);
+          if (!target || target.done) return;
+          target.done = true;
+          saveState();
+          renderAlerts();
+          playAlertBeep();
+          showToast(`🔔 تنبيه الرفيق: ${target.title}`, 'warning');
+          addMessage(target.roomId, {
+            id: 'bot-' + Date.now(), senderName: 'بوت الرفيق', senderEmail: 'bot@alrafiq.local', isBot: true, ackBy: [],
+            text: `🔔 حان موعد التنبيه:\n«${target.title}»`, timestamp: Date.now()
+          });
+        };
+        if (remaining <= 0) fire();
+        else alertTimers.set(item.id, setTimeout(fire, Math.min(remaining, 2147483647)));
+      }
+
+      function scheduleAllPendingAlerts() {
+        state.alerts.forEach(a => { if (a.kind === 'alert' && !a.done && a.triggerAt) scheduleAlertTimer(a); });
+      }
+
+      function handleBotCommands(room, text) {
+        if (!room.botEnabled || !text.startsWith('/')) return;
+        const parts = text.trim().split(/\s+/);
+        const cmd = parts[0];
+
+        if (cmd === '/تنبيه') {
+          const delayToken = parts[1];
+          const sec = delayToken ? parseDelaySeconds(delayToken) : null;
+          if (!sec || parts.length < 3) {
+            addMessage(room.id, {
+              id: 'bot-' + Date.now(), senderName: 'بوت الرفيق', senderEmail: 'bot@alrafiq.local', isBot: true, ackBy: [],
+              text: 'صيغة الأمر الصحيحة:\n/تنبيه 10s تسليم طلبية 45 (أو 5m للدقائق، 1h للساعات)', timestamp: Date.now()
+            });
+            return;
+          }
+          const title = parts.slice(2).join(' ');
+          createAlert(room.id, title, sec, 'alert');
+          addMessage(room.id, {
+            id: 'bot-' + Date.now(), senderName: 'بوت الرفيق', senderEmail: 'bot@alrafiq.local', isBot: true, ackBy: [],
+            text: `✅ تم ضبط التنبيه: «${title}» بعد ${delayToken}.`, timestamp: Date.now()
+          });
+        } else if (cmd === '/مهمة') {
+          const title = parts.slice(1).join(' ');
+          if (!title) return;
+          createAlert(room.id, title, 0, 'task');
+          addMessage(room.id, {
+            id: 'bot-' + Date.now(), senderName: 'بوت الرفيق', senderEmail: 'bot@alrafiq.local', isBot: true, ackBy: [],
+            text: `📌 تم إضافة المهمة لقائمة الغرفة:\n«${title}»`, timestamp: Date.now()
+          });
+        } else if (cmd === '/ملخص') {
+          const msgsCount = (state.messages[room.id] || []).length;
+          const roomAlerts = state.alerts.filter(a => a.roomId === room.id && !a.done);
+          addMessage(room.id, {
+            id: 'bot-' + Date.now(), senderName: 'بوت الرفيق', senderEmail: 'bot@alrafiq.local', isBot: true, ackBy: [],
+            text: `📊 ملخص غرفة «${room.name}»:\n• إجمالي الرسائل: ${msgsCount}\n• التنبيهات والمهام النشطة: ${roomAlerts.length}`, timestamp: Date.now()
+          });
+        } else if (cmd === '/مساعدة') {
+          addMessage(room.id, {
+            id: 'bot-' + Date.now(), senderName: 'بوت الرفيق', senderEmail: 'bot@alrafiq.local', isBot: true, ackBy: [],
+            text: 'أوامر بوت الرفيق:\n• /تنبيه 10s [النص] — تنبيه صوتي بعد مدة\n• /مهمة [النص] — حفظ مهمة في مركز المهام\n• /ملخص — إحصائيات الغرفة الحالية', timestamp: Date.now()
+          });
+        }
+      }
+
+      function renderAlerts() {
+        const list = document.getElementById('alerts-list');
+        const badge = document.getElementById('alerts-badge');
+        const activeCount = state.alerts.filter(a => !a.done).length;
+        badge.textContent = String(activeCount);
+        badge.classList.toggle('hidden', activeCount === 0);
+
+        list.innerHTML = '';
+        if (!state.alerts.length) {
+          list.innerHTML = '<p class="text-xs text-slate-500 text-center py-8">لا توجد تنبيهات أو مهام مسجلة</p>';
+          return;
+        }
+        state.alerts.forEach(item => {
+          const room = state.rooms.find(r => r.id === item.roomId);
+          const card = document.createElement('div');
+          card.className = `p-3 rounded-2xl border ${item.done ? 'bg-slate-950/40 border-slate-800/60 opacity-60' : 'bg-slate-950 border-slate-800'}`;
+          card.innerHTML = `
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${item.kind === 'alert' ? 'bg-amber-500/15 text-amber-300' : 'bg-emerald-500/15 text-emerald-300'}">
+                  ${item.kind === 'alert' ? 'تنبيه' : 'مهمة'} • ${escapeHtml(room ? room.name : 'غرفة')}
+                </span>
+                <p class="text-xs font-bold text-slate-100 mt-1.5 ${item.done ? 'line-through' : ''}">${escapeHtml(item.title)}</p>
+              </div>
+              <div class="flex items-center gap-1 shrink-0">
+                <button type="button" data-action="toggle" class="p-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600/20 text-emerald-400" title="تم">
+                  <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                </button>
+                <button type="button" data-action="delete" class="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-600/20 text-rose-400" title="حذف">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </div>
+          `;
+          card.querySelector('[data-action="toggle"]').addEventListener('click', () => { item.done = !item.done; saveState(); renderAlerts(); });
+          card.querySelector('[data-action="delete"]').addEventListener('click', () => {
+            if (alertTimers.has(item.id)) clearTimeout(alertTimers.get(item.id));
+            state.alerts = state.alerts.filter(a => a.id !== item.id);
+            saveState(); renderAlerts();
+          });
+          list.appendChild(card);
+        });
+        lucide.createIcons({ root: list });
+      }
+
+      // --- Modals ---
+      function renderRoomMembersUI() {
+        const room = getActiveRoom();
+        if (!room) return;
+        const sel = document.getElementById('room-add-employee-select');
+        const chips = document.getElementById('room-members-chips');
+        sel.innerHTML = '';
+        if (!state.users.length) sel.innerHTML = '<option value="">لا يوجد موظفون مسجلون</option>';
+        else state.users.forEach(u => {
+          const opt = document.createElement('option');
+          opt.value = u.email; opt.textContent = `${u.name} (${u.role})`;
+          sel.appendChild(opt);
+        });
+
+        chips.innerHTML = '';
+        const members = Array.isArray(room.members) ? room.members : ['*'];
+        members.forEach(m => {
+          const u = state.users.find(x => x.email === m);
+          const span = document.createElement('span');
+          span.className = 'px-2.5 py-1 rounded-full bg-slate-800 text-[10px] font-bold text-slate-200';
+          span.textContent = m === '*' ? 'الجميع (غرفة عامة)' : (u ? u.name : m);
+          chips.appendChild(span);
+        });
+      }
+
+      function openAppSettings(tab = 'general') {
+        document.getElementById('set-sound').checked = !!state.settings.soundEnabled;
+        document.getElementById('set-large-font').checked = !!state.settings.largeFont;
+        document.getElementById('set-auto-join').checked = !!state.settings.autoJoinNewEmployees;
+        document.getElementById('set-notif-tone').value = state.settings.notifTone || 'factory';
+        document.getElementById('set-call-tone').value = state.settings.callTone || 'classic';
+        document.getElementById('set-ring-volume').value = String(state.settings.ringVolume || '1.0');
+        document.getElementById('set-conn-mode').value = state.settings.connectionMode || 'bluetooth';
+        renderSettingsEmployeesTab();
+        switchSettingsTab(tab);
+        document.getElementById('modal-app-settings').classList.remove('hidden');
+        lucide.createIcons({ root: document.getElementById('modal-app-settings') });
+      }
+
+      function switchSettingsTab(tab) {
+        ['general', 'employees', 'about'].forEach(t => {
+          document.getElementById(`stab-${t}`).classList.toggle('hidden', t !== tab);
+        });
+        document.querySelectorAll('.stab-btn').forEach(btn => {
+          const active = btn.getAttribute('data-stab') === tab;
+          btn.className = active
+            ? 'stab-btn py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white transition'
+            : 'stab-btn py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition';
+        });
+      }
+
+      function renderSettingsEmployeesTab() {
+        const empSel = document.getElementById('settings-emp-select');
+        const roomSel = document.getElementById('settings-room-select');
+        const list = document.getElementById('settings-employees-list');
+
+        empSel.innerHTML = '';
+        state.users.forEach(u => {
+          const opt = document.createElement('option');
+          opt.value = u.email; opt.textContent = `${u.name} (${u.role})`;
+          empSel.appendChild(opt);
+        });
+        if (!state.users.length) empSel.innerHTML = '<option value="">لا يوجد موظفون</option>';
+
+        roomSel.innerHTML = '';
+        state.rooms.forEach(r => {
+          const opt = document.createElement('option');
+          opt.value = r.id; opt.textContent = `${r.icon || '💬'} ${r.name}`;
+          roomSel.appendChild(opt);
+        });
+
+        list.innerHTML = '';
+        state.users.forEach(u => {
+          const card = document.createElement('div');
+          card.className = 'p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between gap-2';
+          card.innerHTML = `
+            <div class="min-w-0">
+              <p class="text-xs font-bold text-white truncate">${escapeHtml(u.name)}</p>
+              <p class="text-[11px] text-slate-400 truncate" dir="ltr">${escapeHtml(u.email)} • ${escapeHtml(u.role)}</p>
+            </div>
+            <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 text-[10px] font-bold shrink-0">نشط</span>
+          `;
+          list.appendChild(card);
+        });
+      }
+
+      function openMobileSidebar() {
+        document.getElementById('sidebar').classList.remove('translate-x-full');
+        document.getElementById('mobile-backdrop').classList.remove('hidden');
+      }
+      function closeMobileSidebar() {
+        document.getElementById('sidebar').classList.add('translate-x-full');
+        document.getElementById('mobile-backdrop').classList.add('hidden');
+      }
+
+      // --- Bindings ---
+      function bindEvents() {
+        document.getElementById('tab-login').addEventListener('click', () => switchAuthTab('login'));
+        document.getElementById('tab-signup').addEventListener('click', () => switchAuthTab('signup'));
+
+        document.getElementById('signup-form').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const name = document.getElementById('signup-name').value.trim();
+          const email = document.getElementById('signup-email').value.trim().toLowerCase();
+          const role = document.getElementById('signup-role').value;
+          const password = document.getElementById('signup-password').value;
+
+          if (!isValidGmail(email)) { showToast('يرجى إدخال بريد Gmail صحيح ينتهي بـ @gmail.com', 'error'); return; }
+          if (state.users.some(u => u.name.trim().toLowerCase() === name.toLowerCase())) {
+            showToast('اسم المستخدم هذا مسجل مسبقاً، يرجى اختيار اسم آخر غير مكرر', 'error');
+            document.getElementById('signup-name').focus();
+            return;
+          }
+          if (state.users.some(u => u.email === email)) {
+            showToast('هذا الحساب مسجل مسبقاً، يمكنك تسجيل الدخول مباشرة', 'warning');
+            switchAuthTab('login');
+            document.getElementById('login-email').value = email;
+            return;
+          }
+          const passHash = await hashPassword(password);
+          state.users.push({ name, email, role, passHash, createdAt: Date.now() });
+          state.currentUserEmail = email;
+
+          if (state.settings.autoJoinNewEmployees && state.rooms.length > 0) {
+            const firstRoom = state.rooms[0];
+            if (!Array.isArray(firstRoom.members)) firstRoom.members = ['*'];
+            if (!firstRoom.members.includes(email)) firstRoom.members.push(email);
+            addMessage(firstRoom.id, {
+              id: 'bot-join-' + Date.now(), senderName: 'بوت الرفيق', senderEmail: 'bot@alrafiq.local', isBot: true, ackBy: [],
+              text: `👋 انضم الموظف الجديد «${name}» (${role}) وتمت إتاحة سجل رسائل الغرفة له بالكامل.`, timestamp: Date.now()
+            });
+          }
+          await saveState();
+          showToast(`مرحباً ${name}! تم إنشاء حسابك وحفظه محلياً`, 'success');
+          enterApp();
+        });
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const email = document.getElementById('login-email').value.trim().toLowerCase();
+          const password = document.getElementById('login-password').value;
+          if (!isValidGmail(email)) { showToast('يرجى إدخال بريد Gmail صحيح', 'error'); return; }
+          const user = state.users.find(u => u.email === email);
+          if (!user) {
+            showToast('الحساب غير موجود محلياً. أنشئ حساباً جديداً أولاً', 'warning');
+            switchAuthTab('signup');
+            document.getElementById('signup-email').value = email;
+            return;
+          }
+          const passHash = await hashPassword(password);
+          if (user.passHash !== passHash) { showToast('كلمة المرور غير صحيحة', 'error'); return; }
+          state.currentUserEmail = user.email;
+          await saveState();
+          enterApp();
+        });
+
+        document.getElementById('btn-google-quick').addEventListener('click', () => {
+          if (state.users.length > 0) {
+            state.currentUserEmail = state.users[0].email;
+            saveState();
+            showToast(`تم الدخول السريع بحساب ${state.users[0].name}`, 'success');
+            enterApp();
+          } else {
+            showToast('أنشئ حساب Gmail أول مرة وسيتم حفظه للدخول السريع بدون إنترنت', 'info');
+            switchAuthTab('signup');
+          }
+        });
+
+        document.getElementById('btn-logout').addEventListener('click', () => {
+          state.currentUserEmail = null;
+          saveState();
+          document.getElementById('app-screen').classList.add('hidden');
+          document.getElementById('auth-screen').classList.remove('hidden');
+          renderSavedAccounts();
+        });
+
+        document.getElementById('btn-open-sidebar').addEventListener('click', openMobileSidebar);
+        document.getElementById('btn-quick-connect-team').addEventListener('click', () => {
+          closeMobileSidebar();
+          document.getElementById('modal-quick-connect').classList.remove('hidden');
+          lucide.createIcons({ root: document.getElementById('modal-quick-connect') });
+        });
+        document.getElementById('btn-qc-close').addEventListener('click', () => {
+          document.getElementById('modal-quick-connect').classList.add('hidden');
+        });
+        document.getElementById('btn-qc-connect-now').addEventListener('click', () => {
+          const st = document.getElementById('qc-status-text');
+          st.textContent = 'جاري البحث عن هواتف الفريق القريبة...';
+          setTimeout(() => {
+            st.textContent = '✅ جاهز! الأجهزة المسجلة على نفس النطاق متصلة الآن';
+            playAlertBeep();
+            showToast('تم تفعيل الربط السريع للفريق بنجاح', 'success');
+          }, 700);
+        });
+        document.getElementById('btn-close-sidebar').addEventListener('click', closeMobileSidebar);
+        document.getElementById('mobile-backdrop').addEventListener('click', closeMobileSidebar);
+        document.getElementById('room-search').addEventListener('input', renderRooms);
+
+        // Calls
+        document.getElementById('btn-call-audio').addEventListener('click', () => startInternalCall(false));
+        document.getElementById('btn-call-video').addEventListener('click', () => startInternalCall(true));
+        document.getElementById('btn-call-end').addEventListener('click', endInternalCall);
+        document.getElementById('btn-call-mute').addEventListener('click', () => {
+          activeCall.muted = !activeCall.muted;
+          if (activeCall.stream) activeCall.stream.getAudioTracks().forEach(t => { t.enabled = !activeCall.muted; });
+          showToast(activeCall.muted ? 'تم كتم الميكروفون' : 'تم تشغيل الميكروفون', 'info');
+        });
+        document.getElementById('btn-call-cam').addEventListener('click', () => {
+          activeCall.camOff = !activeCall.camOff;
+          if (activeCall.stream) activeCall.stream.getVideoTracks().forEach(t => { t.enabled = !activeCall.camOff; });
+          showToast(activeCall.camOff ? 'تم إيقاف الكاميرا' : 'تم تشغيل الكاميرا', 'info');
+        });
+
+        // In-room Search
+        document.getElementById('btn-toggle-msg-search').addEventListener('click', () => {
+          document.getElementById('msg-search-bar').classList.toggle('hidden');
+          document.getElementById('msg-search-input').focus();
+        });
+        document.getElementById('btn-close-msg-search').addEventListener('click', () => {
+          document.getElementById('msg-search-input').value = '';
+          document.getElementById('msg-search-bar').classList.add('hidden');
+          renderMessages();
+        });
+        document.getElementById('msg-search-input').addEventListener('input', renderMessages);
+
+        // Voice Note
+        document.getElementById('btn-record-voice').addEventListener('click', toggleVoiceRecording);
+        document.getElementById('btn-stop-voice').addEventListener('click', toggleVoiceRecording);
+
+        // PIN Unlock
+        document.getElementById('btn-cancel-pin').addEventListener('click', () => {
+          pendingUnlockRoomId = null;
+          document.getElementById('modal-pin-unlock').classList.add('hidden');
+        });
+        document.getElementById('pin-unlock-form').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const room = state.rooms.find(r => r.id === pendingUnlockRoomId);
+          const val = document.getElementById('pin-unlock-input').value.trim();
+          if (!room || val !== room.pin) {
+            showToast('رمز PIN غير صحيح', 'error');
+            return;
+          }
+          unlockedRooms.add(room.id);
+          document.getElementById('modal-pin-unlock').classList.add('hidden');
+          selectRoom(room);
+        });
+
+        // New Room
+        document.getElementById('btn-new-room').addEventListener('click', () => {
+          document.getElementById('modal-new-room').classList.remove('hidden');
+          document.getElementById('new-room-name').focus();
+        });
+        document.getElementById('btn-cancel-new-room').addEventListener('click', () => {
+          document.getElementById('modal-new-room').classList.add('hidden');
+        });
+        document.getElementById('new-room-form').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const name = document.getElementById('new-room-name').value.trim();
+          const desc = document.getElementById('new-room-desc').value.trim();
+          const icon = document.getElementById('new-room-icon').value;
+          const botEnabled = document.getElementById('new-room-bot').checked;
+          if (!name) return;
+
+          const id = 'room-' + Date.now();
+          state.rooms.unshift({ id, name, desc: desc || 'غرفة محلية غير محدودة', icon, botEnabled, pin: '', members: ['*'], createdAt: Date.now() });
+          state.messages[id] = botEnabled ? [{
+            id: 'm-' + Date.now(), senderName: 'بوت الرفيق', senderEmail: 'bot@alrafiq.local', isBot: true, ackBy: [],
+            text: `تم إنشاء غرفة «${name}» بنجاح. يمكنك البدء بالمراسلة أو استخدام /تنبيه و /مهمة.`, timestamp: Date.now()
+          }] : [];
+          state.activeRoomId = id;
+          saveState();
+          e.target.reset();
+          document.getElementById('modal-new-room').classList.add('hidden');
+          renderRooms();
+          renderActiveRoom();
+          closeMobileSidebar();
+          showToast(`تم إنشاء غرفة «${name}»`, 'success');
+        });
+
+        // Room Settings & Members
+        document.getElementById('btn-room-settings').addEventListener('click', () => {
+          const room = getActiveRoom();
+          if (!room) return;
+          document.getElementById('toggle-room-bot').checked = !!room.botEnabled;
+          document.getElementById('room-pin-input').value = room.pin || '';
+          renderRoomMembersUI();
+          document.getElementById('modal-room-settings').classList.remove('hidden');
+          lucide.createIcons({ root: document.getElementById('modal-room-settings') });
+        });
+        document.getElementById('btn-close-room-settings').addEventListener('click', () => {
+          document.getElementById('modal-room-settings').classList.add('hidden');
+        });
+        document.getElementById('toggle-room-bot').addEventListener('change', (e) => {
+          const room = getActiveRoom();
+          if (!room) return;
+          room.botEnabled = e.target.checked;
+          saveState();
+          renderActiveRoom();
+        });
+        document.getElementById('btn-save-room-pin').addEventListener('click', () => {
+          const room = getActiveRoom();
+          if (!room) return;
+          const pin = document.getElementById('room-pin-input').value.trim();
+          room.pin = pin;
+          if (pin) unlockedRooms.add(room.id);
+          saveState();
+          renderRooms();
+          renderActiveRoom();
+          showToast(pin ? 'تم تفعيل قفل PIN للغرفة' : 'تم إلغاء قفل PIN عن الغرفة', 'success');
+        });
+        document.getElementById('btn-room-add-employee').addEventListener('click', () => {
+          const room = getActiveRoom();
+          const email = document.getElementById('room-add-employee-select').value;
+          const sendHistory = document.getElementById('chk-send-full-history').checked;
+          if (!room || !email) { showToast('اختر موظفاً أولاً', 'warning'); return; }
+          if (assignEmployeeToRoom(email, room.id, sendHistory)) {
+            renderRoomMembersUI();
+            showToast('تمت إضافة الموظف وإتاحة سجل الرسائل بالكامل', 'success');
+          }
+        });
+        document.getElementById('btn-export-room-bundle').addEventListener('click', () => {
+          const room = getActiveRoom();
+          if (room) exportRoomBundle(room);
+        });
+        document.getElementById('btn-export-room-txt').addEventListener('click', () => {
+          const room = getActiveRoom();
+          if (!room) return;
+          const lines = (state.messages[room.id] || []).map(m => `[${formatTime(m.timestamp)}] ${m.senderName}: ${m.text || '(مرفق)'}`);
+          const blob = new Blob([`سجل غرفة: ${room.name}\n\n` + lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url; a.download = `room-${room.id}-history.txt`; a.click();
+          URL.revokeObjectURL(url);
+          showToast('تم تنزيل سجل الرسائل النصي', 'success');
+        });
+        document.getElementById('btn-clear-room-msgs').addEventListener('click', () => {
+          const room = getActiveRoom();
+          if (!room) return;
+          state.messages[room.id] = [];
+          saveState(); renderMessages(); renderRooms();
+          document.getElementById('modal-room-settings').classList.add('hidden');
+          showToast('تم مسح رسائل الغرفة', 'info');
+        });
+        document.getElementById('btn-delete-room').addEventListener('click', () => {
+          if (state.rooms.length <= 1) { showToast('يجب الإبقاء على غرفة واحدة على الأقل', 'warning'); return; }
+          const room = getActiveRoom();
+          state.rooms = state.rooms.filter(r => r.id !== room.id);
+          delete state.messages[room.id];
+          state.activeRoomId = state.rooms[0].id;
+          saveState();
+          document.getElementById('modal-room-settings').classList.add('hidden');
+          renderRooms(); renderActiveRoom();
+          showToast('تم حذف الغرفة', 'info');
+        });
+
+        // App Settings
+        document.getElementById('btn-app-settings-sidebar').addEventListener('click', () => { closeMobileSidebar(); openAppSettings('general'); });
+        document.getElementById('btn-app-settings-header').addEventListener('click', () => openAppSettings('general'));
+        document.getElementById('btn-close-app-settings').addEventListener('click', () => document.getElementById('modal-app-settings').classList.add('hidden'));
+        document.querySelectorAll('.stab-btn').forEach(btn => btn.addEventListener('click', () => switchSettingsTab(btn.getAttribute('data-stab'))));
+        document.getElementById('set-sound').addEventListener('change', (e) => { state.settings.soundEnabled = e.target.checked; saveState(); });
+        document.getElementById('set-large-font').addEventListener('change', (e) => { state.settings.largeFont = e.target.checked; applySettings(); saveState(); });
+        document.getElementById('set-auto-join').addEventListener('change', (e) => { state.settings.autoJoinNewEmployees = e.target.checked; saveState(); });
+        document.getElementById('set-notif-tone').addEventListener('change', (e) => { state.settings.notifTone = e.target.value; saveState(); playAlertBeep(e.target.value); });
+        document.getElementById('btn-test-notif-tone').addEventListener('click', () => playAlertBeep(document.getElementById('set-notif-tone').value));
+        document.getElementById('set-call-tone').addEventListener('change', (e) => { state.settings.callTone = e.target.value; saveState(); playCallRingOnce(e.target.value); });
+        document.getElementById('btn-test-call-tone').addEventListener('click', () => playCallRingOnce(document.getElementById('set-call-tone').value));
+        document.getElementById('set-ring-volume').addEventListener('change', (e) => { state.settings.ringVolume = parseFloat(e.target.value); saveState(); });
+        document.getElementById('set-conn-mode').addEventListener('change', (e) => { state.settings.connectionMode = e.target.value; applySettings(); saveState(); showToast('تم تحديث طريقة الاتصال البديلة', 'success'); });
+        document.getElementById('btn-settings-assign-emp').addEventListener('click', () => {
+          const email = document.getElementById('settings-emp-select').value;
+          const roomId = document.getElementById('settings-room-select').value;
+          if (!email || !roomId) { showToast('اختر الموظف والغرفة أولاً', 'warning'); return; }
+          if (assignEmployeeToRoom(email, roomId, true)) showToast('تمت إضافة الموظف وإرسال سجل الرسائل بالكامل بنجاح', 'success');
+        });
+        document.getElementById('btn-settings-export-all').addEventListener('click', () => {
+          downloadJson(`alrafiq-backup-${new Date().toISOString().slice(0, 10)}.json`, state);
+          showToast('تم تنزيل نسخة كاملة من التطبيق', 'success');
+        });
+        document.getElementById('btn-settings-import-room').addEventListener('click', () => document.getElementById('import-room-input').click());
+        document.getElementById('import-room-input').addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = async () => {
+            try {
+              const bundle = JSON.parse(reader.result);
+              if (bundle.type !== 'alrafiq_room_bundle' || !bundle.room) throw new Error('Invalid');
+              const idx = state.rooms.findIndex(r => r.id === bundle.room.id);
+              if (idx >= 0) state.rooms[idx] = bundle.room;
+              else state.rooms.unshift(bundle.room);
+              state.messages[bundle.room.id] = Array.isArray(bundle.messages) ? bundle.messages : [];
+              state.activeRoomId = bundle.room.id;
+              await saveState(); renderRooms(); renderActiveRoom();
+              document.getElementById('modal-app-settings').classList.add('hidden');
+              showToast(`تم استيراد غرفة «${bundle.room.name}» مع سجل رسائلها بالكامل`, 'success');
+            } catch (_) { showToast('ملف حزمة الغرفة غير صالح', 'error'); }
+          };
+          reader.readAsText(file);
+        });
+
+        // Alerts Drawer
+        document.getElementById('btn-toggle-bot-panel').addEventListener('click', () => document.getElementById('alerts-drawer').classList.toggle('-translate-x-full'));
+        document.getElementById('btn-close-alerts').addEventListener('click', () => document.getElementById('alerts-drawer').classList.add('-translate-x-full'));
+        document.getElementById('quick-alert-form').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const room = getActiveRoom();
+          const title = document.getElementById('quick-alert-text').value.trim();
+          const sec = parseInt(document.getElementById('quick-alert-delay').value, 10);
+          if (!room || !title) return;
+          createAlert(room.id, title, sec, 'alert');
+          e.target.reset();
+          showToast('تم ضبط التنبيه بنجاح', 'success');
+        });
+
+        document.querySelectorAll('.cmd-chip').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const input = document.getElementById('message-input');
+            input.value = btn.getAttribute('data-cmd') || '';
+            input.focus();
+          });
+        });
+
+        document.getElementById('file-attach-input').addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          if (file.size > 2 * 1024 * 1024) { showToast('حجم الملف كبير جداً للتخزين المحلي (الحد الأقصى 2MB)', 'warning'); return; }
+          const reader = new FileReader();
+          reader.onload = () => {
+            pendingAttachment = { name: file.name, type: file.type, dataUrl: reader.result };
+            document.getElementById('attachment-name').textContent = file.name;
+            document.getElementById('attachment-preview-bar').classList.remove('hidden');
+          };
+          reader.readAsDataURL(file);
+        });
+        document.getElementById('btn-remove-attachment').addEventListener('click', () => {
+          pendingAttachment = null;
+          document.getElementById('file-attach-input').value = '';
+          document.getElementById('attachment-preview-bar').classList.add('hidden');
+        });
+
+        const msgInput = document.getElementById('message-input');
+        msgInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); document.getElementById('message-form').requestSubmit(); }
+        });
+        document.getElementById('message-form').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const room = getActiveRoom();
+          const user = getCurrentUser();
+          const text = msgInput.value.trim();
+          if (!room || !user || (!text && !pendingAttachment)) return;
+
+          addMessage(room.id, {
+            id: 'm-' + Date.now(), senderName: user.name, senderEmail: user.email, isBot: false,
+            text, attachment: pendingAttachment, timestamp: Date.now()
+          });
+          msgInput.value = '';
+          pendingAttachment = null;
+          document.getElementById('file-attach-input').value = '';
+          document.getElementById('attachment-preview-bar').classList.add('hidden');
+          if (text.startsWith('/')) handleBotCommands(room, text);
+        });
+
+        document.getElementById('btn-export-backup').addEventListener('click', () => {
+          downloadJson(`alrafiq-backup-${new Date().toISOString().slice(0, 10)}.json`, state);
+          showToast('تم تنزيل النسخة الاحتياطية بنجاح', 'success');
+        });
+        document.getElementById('btn-import-backup').addEventListener('click', () => document.getElementById('import-file-input').click());
+        document.getElementById('import-file-input').addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = async () => {
+            try {
+              const imported = JSON.parse(reader.result);
+              if (!imported || !Array.isArray(imported.rooms)) throw new Error('Invalid');
+              state = { ...structuredClone(DEFAULT_STATE), ...imported, settings: { ...DEFAULT_STATE.settings, ...(imported.settings || {}) } };
+              await saveState(); applySettings(); renderRooms(); renderActiveRoom(); renderAlerts(); scheduleAllPendingAlerts();
+              showToast('تمت استعادة النسخة الاحتياطية بنجاح', 'success');
+            } catch (_) { showToast('ملف النسخة الاحتياطية غير صالح', 'error'); }
+          };
+          reader.readAsText(file);
+        });
+      }
+
+      (async function init() {
+        await loadState();
+        applySettings();
+        bindEvents();
+        renderSavedAccounts();
+        lucide.createIcons();
+        if (getCurrentUser()) enterApp();
+      })();
+    })();
+  </script>
+</body>
+</html>
